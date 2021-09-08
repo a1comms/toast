@@ -34,7 +34,7 @@ $template = @"
 			<image placement="hero" src="{{.HeroImage}}" />
 			{{end}}
             {{if .Icon}}
-            <image placement="appLogoOverride" src="{{.Icon}}" />
+            <image placement="appLogoOverride" hint-crop="circle" src="{{.Icon}}" />
             {{end}}
 			{{if .Image}}
             <image src="{{.Image}}" />
