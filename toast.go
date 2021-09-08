@@ -10,7 +10,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/nu7hatch/gouuid"
+	uuid "github.com/satori/go.uuid"
+
 	"syscall"
 )
 
@@ -72,8 +73,14 @@ $template = @"
 <toast activationType="{{.ActivationType}}" launch="{{.ActivationArguments}}" duration="{{.Duration}}">
     <visual>
         <binding template="ToastGeneric">
+			{{if .HeroImage}}
+			<image placement="hero" src="{{.HeroImage}}" />
+			{{end}}
             {{if .Icon}}
             <image placement="appLogoOverride" src="{{.Icon}}" />
+            {{end}}
+			{{if .Image}}
+            <image src="{{.Image}}" />
             {{end}}
             {{if .Title}}
             <text><![CDATA[{{.Title}}]]></text>
@@ -81,6 +88,9 @@ $template = @"
             {{if .Message}}
             <text><![CDATA[{{.Message}}]]></text>
             {{end}}
+			{{if .Attribution}}
+			<text placement="attribution">{{.Attribution}}</text>
+			{{end}}
         </binding>
     </visual>
     {{if ne .Audio "silent"}}
@@ -147,34 +157,43 @@ type Notification struct {
 	// The name of your app. This value shows up in Windows 10's Action Centre, so make it
 	// something readable for your users. It can contain spaces, however special characters
 	// (eg. é) are not supported.
-	AppID string
+	AppID string `json:"appID"`
 
 	// The main title/heading for the toast notification.
-	Title string
+	Title string `json:"title"`
 
 	// The single/multi line message to display for the toast notification.
-	Message string
+	Message string `json:"message,omitempty"`
+
+	// A message attribution string
+	Attribution string `json:"attribution,omitempty"`
 
 	// An optional path to an image on the OS to display to the left of the title & message.
-	Icon string
+	Icon string `json:"icon,omitempty"`
+
+	// An optional hero image, local image path...
+	HeroImage string `json:"hero,omitempty"`
+
+	// An optional image URL...
+	Image string `json:"image,omitempty"`
 
 	// The type of notification level action (like toast.Action)
-	ActivationType string
+	ActivationType string `json:"activationType,omitempty"`
 
 	// The activation/action arguments (invoked when the user clicks the notification)
-	ActivationArguments string
+	ActivationArguments string `json:"activationArguments,omitempty"`
 
 	// Optional action buttons to display below the notification title & message.
-	Actions []Action
+	Actions []Action `json:"actions,omitempty"`
 
 	// The audio to play when displaying the toast
-	Audio toastAudio
+	Audio toastAudio `json:"audio,omitempty"`
 
 	// Whether to loop the audio (default false)
-	Loop bool
+	Loop bool `json:"loop,omitempty"`
 
 	// How long the toast should show up for (short/long)
-	Duration toastDuration
+	Duration toastDuration `json:"duration,omitempty"`
 }
 
 // Action
@@ -188,9 +207,9 @@ type Notification struct {
 //
 //     toast.Action{"protocol", "Open Maps", "bingmaps:?q=sushi"}
 type Action struct {
-	Type      string
-	Label     string
-	Arguments string
+	Type      string `json:"type,omitempty"`
+	Label     string `json:"label,omitempty"`
+	Arguments string `json:"arguments,omitempty"`
 }
 
 func (n *Notification) applyDefaults() {
